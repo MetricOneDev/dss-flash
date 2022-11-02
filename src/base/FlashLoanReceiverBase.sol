@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2021 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,15 +16,15 @@
 pragma solidity >=0.6.12;
 
 import "../flash.sol";
-import "../interface/IVatDaiFlashBorrower.sol";
+import "../interface/IVatStblFlashBorrower.sol";
 import "../interface/IERC3156FlashBorrower.sol";
 
-abstract contract FlashLoanReceiverBase is IVatDaiFlashBorrower, IERC3156FlashBorrower {
+abstract contract FlashLoanReceiverBase is IVatStblFlashBorrower, IERC3156FlashBorrower {
 
     DssFlash public flash;
 
     bytes32 public constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
-    bytes32 public constant CALLBACK_SUCCESS_VAT_DAI = keccak256("VatDaiFlashBorrower.onVatDaiFlashLoan");
+    bytes32 public constant CALLBACK_SUCCESS_VAT_STBL = keccak256("VatStblFlashBorrower.onVatStblFlashLoan");
 
     // --- Init ---
     constructor(address _flash) public {
@@ -46,11 +45,11 @@ abstract contract FlashLoanReceiverBase is IVatDaiFlashBorrower, IERC3156FlashBo
 
     // --- Helper Functions ---
     function approvePayback(uint256 amount) internal {
-        // Lender takes back the dai as per ERC 3156 spec
-        flash.dai().approve(address(flash), amount);
+        // Lender takes back the stbl as per ERC 3156 spec
+        flash.stbl().approve(address(flash), amount);
     }
-    function payBackVatDai(uint256 amount) internal {
-        // Lender takes back the dai as per ERC 3156 spec
+    function payBackVatStbl(uint256 amount) internal {
+        // Lender takes back the stbl as per ERC 3156 spec
         flash.vat().move(address(this), address(flash), amount);
     }
 

@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Copyright (C) 2021 Dai Foundation
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,19 +15,21 @@
 
 pragma solidity >=0.6.12;
 
-import "./IVatDaiFlashBorrower.sol";
-
-interface IVatDaiFlashLender {
+interface IVatStblFlashBorrower {
 
     /**
-     * @dev Initiate a flash loan.
-     * @param receiver The receiver of the tokens in the loan, and the receiver of the callback.
+     * @dev Receive a flash loan.
+     * @param initiator The initiator of the loan.
      * @param amount The amount of tokens lent. [rad]
+     * @param fee The additional amount of tokens to repay. [rad]
      * @param data Arbitrary data structure, intended to contain user-defined parameters.
+     * @return The keccak256 hash of "IVatStblFlashLoanReceiver.onVatStblFlashLoan"
      */
-    function vatDaiFlashLoan(
-        IVatDaiFlashBorrower receiver,
+    function onVatStblFlashLoan(
+        address initiator,
         uint256 amount,
+        uint256 fee,
         bytes calldata data
-    ) external returns (bool);
+    ) external returns (bytes32);
+
 }
