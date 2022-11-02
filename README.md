@@ -1,7 +1,6 @@
 # dss-flash
-![Build Status](https://github.com/makerdao/dss-flash/actions/workflows/.github/workflows/tests.yaml/badge.svg?branch=master)
 
-Flash Mint Module for the Maker protocol - an implementation of [MIP25](https://forum.makerdao.com/t/mip25-flash-mint-module/4400). This module conforms to the [ERC3156 spec](https://eips.ethereum.org/EIPS/eip-3156) so please read this over to get a firm idea of the considerations/risks.
+Flash Mint Module for the StableCoin protocol. This module conforms to the [ERC3156 spec](https://eips.ethereum.org/EIPS/eip-3156) so please read this over to get a firm idea of the considerations/risks.
 
 ## Usage
 
@@ -67,25 +66,25 @@ contract FlashBorrower is IERC3156FlashBorrower {
 }
 ```
 
-## Vat Dai
+## Vat Stbl
 
-It may be that users are interested in moving dai around in the internal vat balances. Instead of wasting gas by minting/burning ERC20 dai you can instead use the vat dai flash mint function to short cut this.
+It may be that users are interested in moving stbl around in the internal vat balances. Instead of wasting gas by minting/burning ERC20 stbl you can instead use the vat stbl flash mint function to short cut this.
 
-The vat dai version of flash mint is roughly the same as the ERC20 dai version with a few caveats:
+The vat stbl version of flash mint is roughly the same as the ERC20 stbl version with a few caveats:
 
 ### Function Signature
 
-`vatDaiFlashLoan(IVatDaiFlashBorrower receiver, uint256 amount, bytes calldata data)`
+`vatStblFlashLoan(IVatStblFlashBorrower receiver, uint256 amount, bytes calldata data)`
 
 vs
 
 `flashLoan(IERC3156FlashBorrower receiver, address token, uint256 amount, bytes calldata data)`
 
-Notice that no token is required because it is assumed to be vat dai. Also, the `amount` is in RADs and not in WADs.
+Notice that no token is required because it is assumed to be vat stbl. Also, the `amount` is in RADs and not in WADs.
 
 ### Approval Mechanism
 
-ERC3156 specifies using a token approval to approve the amount to repay to the lender. Unfortunately vat dai does not have a way to specify delegation amounts, so instead of giving the flash mint module full rights to withdraw any amount of vat dai we have instead opted to have the receiver push the balance owed at the end of the transaction.
+ERC3156 specifies using a token approval to approve the amount to repay to the lender. Unfortunately vat stbl does not have a way to specify delegation amounts, so instead of giving the flash mint module full rights to withdraw any amount of vat stbl we have instead opted to have the receiver push the balance owed at the end of the transaction.
 
 ### Example
 
@@ -97,24 +96,24 @@ pragma solidity ^0.6.12;
 import "dss-interfaces/dss/VatAbstract.sol";
 
 import "./interfaces/IERC3156FlashLender.sol";
-import "./interfaces/IVatDaiFlashBorrower.sol";
+import "./interfaces/IVatStblFlashBorrower.sol";
 
-contract FlashBorrower is IVatDaiFlashBorrower {
+contract FlashBorrower is IVatStblFlashBorrower {
     enum Action {NORMAL, OTHER}
 
     VatAbstract vat;
-    IVatDaiFlashLender lender;
+    IVatStblFlashLender lender;
 
     constructor (
         VatAbstract vat_,
-        IVatDaiFlashLender lender_
+        IVatStblFlashLender lender_
     ) public {
         vat = vat_;
         lender = lender_;
     }
 
-    /// @dev Vat Dai Flash loan callback
-    function onVatDaiFlashLoan(
+    /// @dev Vat Stbl Flash loan callback
+    function onVatStblFlashLoan(
         address initiator,
         uint256 amount,
         uint256 fee,
@@ -139,15 +138,15 @@ contract FlashBorrower is IVatDaiFlashBorrower {
         // Be sure not to overpay as there are no safety guards for this
         vat.move(address(this), lender, amount + fee);
 
-        return keccak256("VatDaiFlashBorrower.onVatDaiFlashLoan");
+        return keccak256("VatStblFlashBorrower.onVatStblFlashLoan");
     }
 
     /// @dev Initiate a flash loan
-    function vatDaiFlashBorrow(
+    function vatStblFlashBorrow(
         uint256 amount
     ) public {
         bytes memory data = abi.encode(Action.NORMAL);
-        lender.vatDaiFlashLoan(this, amount, data);
+        lender.vatStblFlashLoan(this, amount, data);
     }
 }
 
@@ -161,5 +160,5 @@ To deploy this contract run the following commands:
 
 `make deploy-kovan` for kovan deployment
 
-Deployed Kovan address: [0x5aA1323f61D679E52a90120DFDA2ed1A76E4475A](https://kovan.etherscan.io/address/0x5aA1323f61D679E52a90120DFDA2ed1A76E4475A#code)  
-Deployed Mainnet address: [0x1EB4CF3A948E7D72A198fe073cCb8C7a948cD853](https://etherscan.io/address/0x1eb4cf3a948e7d72a198fe073ccb8c7a948cd853#code)  
+[//]: # (Deployed Kovan address: [0x5aA1323f61D679E52a90120DFDA2ed1A76E4475A]&#40;https://kovan.etherscan.io/address/0x5aA1323f61D679E52a90120DFDA2ed1A76E4475A#code&#41;  )
+[//]: # (Deployed Mainnet address: [0x1EB4CF3A948E7D72A198fe073cCb8C7a948cD853]&#40;https://etherscan.io/address/0x1eb4cf3a948e7d72a198fe073ccb8c7a948cd853#code&#41;  )
